@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Web Speech API Demo</title>
+    <style>
+        button { 
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+        }
+        select {
+            padding: 5px;
+            margin: 10px;
+            font-size: 16px;
+        }
+        textarea {
+            width: 80%;
+            height: 100px;
+            margin: 10px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>文字朗读示例</h1>
+    <div>
+        <textarea id="text">这是一段测试文字，用于演示浏览器的朗读功能。</textarea>
+    </div>
+    <div>
+        <select id="voices"></select>
+        <button onclick="speak()">开始朗读</button>
+        <button onclick="stop()">停止朗读</button>
+    </div>
+
+    <script>
+        let synth = window.speechSynthesis;
+        let voices = [];
+
+        function loadVoices() {
+            voices = synth.getVoices();
+            let select = document.getElementById('voices');
+            select.innerHTML = '';
+            
+            voices.forEach((voice, i) => {
+                let option = document.createElement('option');
+                option.textContent = `${voice.name} (${voice.lang})`;
+                option.value = i;
+                // 如果是中文声音，默认选中
+                if (voice.lang.includes('zh')) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        }
+
+        // 某些浏览器需要等待voices加载完成
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
+
+        function speak() {
+            // 先停止之前的朗读
+            stop();
+
+            let text = document.getElementById('text').value;
+            let utterance = new SpeechSynthesisUtterance(text);
+            
+            // 设置选中的声音
+            let voiceIndex = document.getElementById('voices').value;
+            utterance.voice = voices[voiceIndex];
+            
+            // 可选的其他设置
+            utterance.pitch = 1;  // 音高 (0 到 2)
+            utterance.rate = 1;   // 语速 (0.1 到 10)
+            utterance.volume = 1; // 音量 (0 到 1)
+            
+            synth.speak(utterance);
+        }
+
+        function stop() {
+            synth.cancel();
+        }
+    </script>
+</body>
+</html>
